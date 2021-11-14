@@ -1,9 +1,12 @@
 import React, { Component, useState } from "react";
 import { StyleSheet, Text, View, SafeAreaView, TouchableHighlight, ActivityIndicator, TextInput, Alert } from "react-native";
 import auth from "@react-native-firebase/auth";
+import { NavigationAction } from "@react-navigation/routers";
 import styles, { blue } from "./Styles";
 
-const LoginComponent = () => {
+
+
+const LoginComponent = ({ setAuthenticated } )=> {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fetching, setFetching] = useState(false);
@@ -35,7 +38,8 @@ const LoginComponent = () => {
     try {
       let response = await auth().signInWithEmailAndPassword(email, password);
       if (response && response.user) {
-        Alert.alert("Success ✅", "Logged successfully");
+        setAuthenticated(true)
+        Alert.alert("Success ✅", "Logged In successfully");
       }
     } catch (e) {
       console.error(e.message);
