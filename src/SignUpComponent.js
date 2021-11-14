@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableHighlight, ActivityIndic
 import auth, { firebase } from "@react-native-firebase/auth";
 import styles, { blue } from "./Styles";
 
-const SignUpComponent = () => {
+const SignUpComponent = ({ setAuthenticated } ) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fetching, setFetching] = useState(false);
@@ -32,6 +32,7 @@ const SignUpComponent = () => {
       let response = await auth().createUserWithEmailAndPassword(email, password);
       if (response && response.user) {
         Alert.alert("Success ✅", "Account created successfully");
+        setAuthenticated(true)
       }
     } catch (e) {
       console.error(e.message);

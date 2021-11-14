@@ -2,10 +2,15 @@ import React, { Component, useState } from "react";
 import { Platform, StyleSheet, UIManager, Text, View, SafeAreaView, TouchableHighlight, ActivityIndicator, TextInput, TouchableOpacity, LayoutAnimation, Alert } from "react-native";
 
 import auth, { firebase } from "@react-native-firebase/auth";
-import LoginComponent from "./src/LoginComponent";
-import SignUpComponent from "./src/SignUpComponent";
+import LoginHandlerComponent from "./src/LoginHandlerComponent";
+import HomeScreen from "./src/HomeScreen";
 import styles from "./src/Styles";
 import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+
+const Stack = createNativeStackNavigator();
+
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -36,49 +41,20 @@ export default class App extends Component {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     return (
       <NavigationContainer>
-        <View style={{ flex: 1 }}>
-          {this.state.authenticated ? (
-            <View style={styles.containerStyle}>
-              <Text style={{ textAlign: "center" }}>email {firebase.auth().currentUser.email} </Text>
-
-              <View style={styles.loginButtonContainerStyle}>
-                <TouchableOpacity
-                  style={styles.loginButtonStyle}
-                  onPress={async () => {
-                    await firebase.auth().signOut();
-                    this.setState({ authenticated: false });
-                  }}
-                >
-                  <Text style={styles.loginButtonTextStyle}> Log Out</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <View style={{ flex: 1 }}>
-              {this.state.isLogin ? <LoginComponent /> : <SignUpComponent />}
-
-              <View style={styles.loginButtonContainerStyle}>
-                <TouchableOpacity style={styles.loginButtonStyle} onPress={() => this.setState(state => ({ isLogin: !state.isLogin }))}>
-                  <Text style={styles.loginButtonTextStyle}> {this.state.isLogin ? "New? Create account." : "Already have account? Log In"}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        </View>
+        <Stack.Navigator initialRouteName={this.state.authenticated ? "Home" : "Login"} screenOptions={{
+            headerShown: false
+          }}>
+          <Stack.Screen
+          name="Login"
+          component={LoginHandlerComponent}
+          />
+          <Stack.Screen
+				  name="Home"
+				  component={HomeScreen}
+			    />
+        </Stack.Navigator>
       </NavigationContainer>
     );
   }
 }
 
-const __filterError = error => {
-  let message = "";
-  let index = error.indexOf("]");
-  message = error.substr(index + 1, error.length - 1);
-
-  return message;
-};
-
-const __isValidEmail = email => {
-  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
-};
