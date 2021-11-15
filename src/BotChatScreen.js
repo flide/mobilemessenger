@@ -3,29 +3,66 @@ import { useEffect, useState,useCallback } from "react";
 import { StyleSheet, View, Text, Keyboard, TouchableWithoutFeedback, TouchableOpacity, FlatList,SafeAreaView } from "react-native";
 import styles, { blue } from "./Styles";
 import { GiftedChat } from 'react-native-gifted-chat'
+import AWS from 'aws-sdk/dist/aws-sdk-react-native'
+
+// Initialize the Amazon Cognito credentials provider
+AWS.config.region = 'ap-southeast-1'; // Region
+AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: 'ap-southeast-1:445cf4ff-ac82-4e8b-a397-16719d2a0959',
+});
+
+let lexRunTime = new AWS.LexRuntime()
+let lexBotName = 'mobileMessengerFileUploaderBot'
+let lexUserId = 'mobileMessengerFileUploaderBot' + Date.now()
+let giftedChatBot = { _id: 2, name: 'React Native', avatar: 'https://placeimg.com/140/140/any', }
 
 export default function BotChatScreen({  } ) {
     const [messages, setMessages] = useState([]);
 
-	useEffect(() => {
-		
-	}, []);
+	let sendToLex = (message) => {
+		let params = {
+			botAlias: '$LATEST',
+			botName: lexBotName,
+			inputText: message,
+			userId: lexUserId,
+		};
+		lexRunTime.postText(params, (err, data) => {
+			if (err) {
+				// TODO SHOW ERROR ON MESSAGES.
+				console.log("error posting to lex " + err);
+			}
+			if (data) {
+				showResponse(data.message);
+			}
+		});
+	};
+
+	let showResponse = (lexResponse) => {
+		setMessages(previousMessages => GiftedChat.append(previousMessages,
+			[
+				{
+					_id: Math.round(Math.random() * 1000000),
+					text: lexResponse,
+					createdAt: new Date(),
+					user: giftedChatBot,
+				},
+			]
+		));
+	};
+
     useEffect(() => {
         setMessages([
           {
             _id: 1,
-            text: 'Hello Bot',
+            text: 'Hey Hi!!, I am new here but I can help you upload a file if you want',
             createdAt: new Date(),
-            user: {
-              _id: 2,
-              name: 'React Native',
-              avatar: 'https://placeimg.com/140/140/any',
-            },
+            user: giftedChatBot,
           },
         ])
       }, [])
       const onSend = useCallback((messages = []) => {
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
+		sendToLex(messages[0].text)
       }, [])
 
 	return (
