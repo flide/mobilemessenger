@@ -4,7 +4,7 @@ import { StyleSheet, View, Text, Keyboard, TouchableWithoutFeedback, TouchableOp
 import styles, { blue } from "./Styles";
 import { firebase } from "@react-native-firebase/auth";
 
-export default function HomeScreen({ setAuthenticated } ) {
+export default function HomeScreen(props) {
 	const interaction_options = ["Chat with Others", "Chat with Bot"];
 
 
@@ -12,9 +12,14 @@ export default function HomeScreen({ setAuthenticated } ) {
 		
 	}, []);
 
+
+
+	const navigateToChatScreens =  (index) => {
+		index == 1 ? props.navigation.navigate('BotChatScreen') : props.navigation.navigate('UserChatScreen')
+	}
+
 	return (
 		<SafeAreaView style={styles.containerStyle}>
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<View style={{ flex: 1, height: "100%" }}>
 				<Text style={local_styles.heading}>Home Screen
 				</Text>
@@ -24,9 +29,9 @@ export default function HomeScreen({ setAuthenticated } ) {
 						horizontal={false}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}
-						renderItem={({ item }) => {
+						renderItem={({ item, index }) => {
 							return (
-								<TouchableOpacity>
+								<TouchableOpacity onPress={ () => navigateToChatScreens(index)}>
 									<View style={local_styles.chatButton}>
 										<Text style={local_styles.buttonText}>{item}</Text>
 									</View>
@@ -39,12 +44,11 @@ export default function HomeScreen({ setAuthenticated } ) {
 				</View>
 				<TouchableOpacity style={styles.loginButtonStyle} onPress={async () => {
                   await firebase.auth().signOut();
-				  setAuthenticated(false)
+				  props.navigation.goBack() 
                 }}>
                 <Text style={[styles.loginButtonTextStyle,,{fontSize:20,marginTop:30}]}> Logout </Text>
               </TouchableOpacity>
 			</View>
-		</TouchableWithoutFeedback>
 		</SafeAreaView>
 	);
 }

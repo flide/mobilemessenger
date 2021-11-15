@@ -7,6 +7,8 @@ import HomeScreen from "./src/HomeScreen";
 import styles from "./src/Styles";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import BotChatScreen from "./src/BotChatScreen";
+import UserChatScreen from "./src/UserChatScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -51,6 +53,14 @@ export default class App extends Component {
           <Stack.Screen
 				  name="Home"
 				  component={HomeScreen}
+			    />
+          <Stack.Screen
+				  name="BotChatScreen"
+				  component={BotChatScreen}
+			    />
+          <Stack.Screen
+				  name="UserChatScreen"
+				  component={UserChatScreen}
 			    />
         </Stack.Navigator>
       </NavigationContainer>
