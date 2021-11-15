@@ -1,9 +1,15 @@
 {
+  "babel": {
+    "ignore": [
+      "node_modules/aws-sdk/dist/aws-sdk-react-native.js"
+    ]
+  },
   "name": "mobilemessenger",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "start-max": "node --max-old-space-size=8192 node_modules/react-native/local-cli/cli.js start",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
