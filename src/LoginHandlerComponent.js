@@ -5,12 +5,12 @@ import auth, { firebase } from "@react-native-firebase/auth";
 import LoginComponent from "./LoginComponent";
 import SignUpComponent from "./SignUpComponent";
 import styles from "./Styles";
-import HomeScreen from "./HomeScreen";
+
 
 
 const tag = "FIREBASE";
 
-const LoginHandlerComponent = () => {
+const LoginHandlerComponent = (props) => {
     const [isLogin, setIsLogin] = useState(false);
     const [authenticated, setAuthenticated] = useState(false);
     
@@ -31,9 +31,7 @@ const LoginHandlerComponent = () => {
       };
         return(
         <View style={{ flex: 1 }}>
-        {authenticated ? (
-          <HomeScreen setAuthenticated={setAuthenticated}></HomeScreen>
-        ) : (
+        {authenticated ?  props.navigation.navigate('Home',{setAuthenticated:setAuthenticated()}) : (
           <View style={{ flex: 1 }}>
             {isLogin ? <LoginComponent setAuthenticated={setAuthenticated}/> : <SignUpComponent  setAuthenticated={setAuthenticated}/>}
 
