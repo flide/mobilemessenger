@@ -2,8 +2,13 @@ import React from "react";
 import { useEffect, useState,useCallback } from "react";
 import { StyleSheet, View, Text, Keyboard, TouchableWithoutFeedback, TouchableOpacity, FlatList,SafeAreaView } from "react-native";
 import styles, { blue } from "./Styles";
-import { GiftedChat } from 'react-native-gifted-chat'
+import { GiftedChat , InputToolbar} from 'react-native-gifted-chat'
 import AWS from 'aws-sdk/dist/aws-sdk-react-native'
+
+import S3 from "aws-sdk/clients/s3";
+import { Credentials } from "aws-sdk";
+
+import DocumentPicker from 'react-native-document-picker'
 
 // Initialize the Amazon Cognito credentials provider
 AWS.config.region = 'ap-southeast-1'; // Region
@@ -17,6 +22,68 @@ let lexUserId = 'mobileMessengerFileUploaderBot' + Date.now()
 let giftedChatBot = { _id: 2, name: 'React Native', avatar: 'https://placeimg.com/140/140/any', }
 
 export default function BotChatScreen({  } ) {
+
+	const getBlob = async (fileUri) => {
+		const resp = await fetch(fileUri);
+		const imageBody = await resp.blob();
+		return imageBody;
+	  };
+	const uploadImageOnS3 = async (file) => {
+		
+		const access = new Credentials({
+			accessKeyId: "AKIATSTLY6JRHHYESEF4",
+			secretAccessKey: "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",
+		  });
+		  
+		  const s3 = new S3({
+			credentials: access,
+			region: "eu-west-2", //"us-west-2"
+			signatureVersion: "v4",
+		  });
+		const signedUrlExpireSeconds = 60 * 15;
+		const url = await s3.getSignedUrlPromise("putObject", {
+			Bucket: "mobilemessengers3",
+			Key: file.name,
+  			ContentType: file.type,
+			Expires: signedUrlExpireSeconds
+		  });
+		  const imageBody = await getBlob(file.uri);
+		  const response = await fetch(url, {
+			method: "PUT",
+			body: imageBody,
+		  });
+		  
+		  console.log(response)
+		  sendToLex("File Sent !!")
+
+
+	 };
+
+
+	const chooseImage = async () => {
+		try {
+			const res = await DocumentPicker.pick({
+			  type: [DocumentPicker.types.images,DocumentPicker.types.pdf],
+			})
+			console.log(
+				res
+			)
+			const file = {
+				uri: res[0].uri,
+				name: res[0].name,
+				type: res[0].type,
+			 };
+			 uploadImageOnS3(file);
+		  } catch (err) {
+			if (DocumentPicker.isCancel(err)) {
+			  // User cancelled the picker, exit any dialogs or menus and move on
+			} else {
+			  throw err
+			}
+		  }
+	 };
+
+
     const [messages, setMessages] = useState([]);
 
 	let sendToLex = (message) => {
@@ -68,45 +135,33 @@ export default function BotChatScreen({  } ) {
 	return (
 		<SafeAreaView style={styles.containerStyle}>
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+		<View>
+			<View style={{height:"90%"}}>
         <GiftedChat
             messages={messages}
             onSend={messages => onSend(messages)}
             user={{_id: 1,}}
-    />
+			
+    	/>
+		</View>
+		<View style={{ height:"10%", alignContent:"center", justifyContent:"center"}}>
+		<TouchableOpacity onPress={() => chooseImage()}>
+		<Text style={local_styles.uploadButton}>Upload a Document</Text>
+		</TouchableOpacity>
+		</View>
+		</View>
 		</TouchableWithoutFeedback>
 		</SafeAreaView>
 	);
 }
 
 const local_styles = StyleSheet.create({
-	heading: {
-		alignSelf: "center",
-		textAlign: "center",
-		marginTop: 30,
-		fontWeight: "bold",
-		fontSize: 30,
-	},
-	TextInput: {
-		alignSelf: "center",
-		width: "100%",
-		height: 45,
-		borderRadius: 10,
-		borderColor: "#e4e4e4",
-		borderWidth: 1,
-		paddingLeft: 10,
-		marginTop: 10,
-	},
-	chatButton: {
-		width: "80%",
-		padding: 30,
-		margin: 20,
-		alignSelf: "center",
+	uploadButton: {
+		padding:10,
 		borderRadius: 10,
 		borderColor: "rgba(57, 129, 233, 0.8)",
 		borderWidth: 2,
-	},
-	buttonText: {
-		alignSelf: "center",
-		fontSize: 17,
-	},
+		alignContent:"center",
+		alignSelf:"center",
+		justifyContent:"center"}
 });
